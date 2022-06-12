@@ -1,55 +1,57 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-interface TimeInterval {
-  startTime: Date;
-  endTime: Date;
-}
-
 type StudyState = "STUDY" | "SHORT_BREAK" | "LONG_BREAK";
+interface TimeInterval {
+  name: StudyState;
+  startTime: Date;
+  endTime: Date | undefined;
+}
 
 function App() {
   // config
-  const [studyInterval, setStudyInterval] = useState(minToMilliseconds(0.1));
-  const [shortBreakInterval, setShortBreakInterval] = useState(minToMilliseconds(5));
-  const [longBreakInterval, setLongBreakInterval] = useState(minToMilliseconds(15));
+  const [studyInterval, setStudyInterval] = useState(minToMilliseconds(0.05));
+  const [shortBreakInterval, setShortBreakInterval] = useState(minToMilliseconds(0.01));
+  const [longBreakInterval, setLongBreakInterval] = useState(minToMilliseconds(0.02));
   const [numOfLabBeforeLongBreak, setNumOfLabBeforeLongBreak] = useState(4);
-  const [isChangeStateAuto, setIsChangeStateAuto] = useState(false);
+  const [isChangeStateAuto, setIsChangeStateAuto] = useState(true);
   const [isStopTimeAfterEnd, setIsStopTimeAfterEnd] = useState(false);
 
   const [studyState, setStudyState] = useState<StudyState>("STUDY");
-
+  const [currInterval, setCurrInterval] = useState<TimeInterval>();
   const [studyTimes, setStudyTimes] = useState<TimeInterval[]>([]);
   const [breakTimes, setBreakTimes] = useState<TimeInterval[]>([]);
 
   const [currLabPassingTime, setCurrLabPassingTime] = useState(0);
   const [currIntervalTime, setCurrIntervalTime] = useState(studyInterval);
-
-  const [numOfLab, setNumOfLab] = useState(0);
-
+  const [numOfLab, setNumOfLab] = useState(1);
   const [isRunning, setIsRunning] = useState(false);
-  const [isTimeToBreak, setIsTimeToBreak] = useState(false);
-
   const [expectedToChangeState, setExpectedToChangeState] = useState(false);
+  const [studyingTime, setStudyingTime] = useState(0);
 
+  // start timer
   useEffect(() => {
     if (isRunning) {
       const interval = setInterval(() => {
         setCurrLabPassingTime((curr) => curr + 100);
+        if (studyState === "STUDY") {
+          setStudyingTime((curr) => curr + 100);
+        }
       }, 100);
       return () => clearInterval(interval);
     }
-  }, [isRunning]);
+  }, [isRunning, studyState]);
 
+  // change state after it passed the curr interval time
   useEffect(() => {
-    if (currLabPassingTime >= studyInterval) {
-      setIsTimeToBreak(true);
+    if (currLabPassingTime >= currIntervalTime) {
       setExpectedToChangeState(true);
     } else {
-      setIsTimeToBreak(false);
+      setExpectedToChangeState(false);
     }
   }, [currLabPassingTime]);
 
+  // set the curr interval time
   useEffect(() => {
     setCurrLabPassingTime(0);
 
@@ -68,6 +70,15 @@ function App() {
     }
   }, [studyState]);
 
+  // change to the next state if expectedToChange is true and isChangeStateAuto is true
+  useEffect(() => {
+    if (isChangeStateAuto) {
+      if (expectedToChangeState) {
+        changeToNextState();
+      }
+    }
+  }, [expectedToChangeState]);
+
   const handleStudyStateChange: React.MouseEventHandler<HTMLButtonElement> = (e) => {
     const newState = e.currentTarget.value as StudyState;
 
@@ -81,19 +92,8 @@ function App() {
   };
 
   const changeStudyState = (newState: StudyState) => {
-    setNumOfLab((curr) => curr + 1);
-
     switch (studyState) {
       case "STUDY":
-        const currTime = new Date();
-        const startTime = new Date(currTime.getTime() - currLabPassingTime);
-
-        const newStudyInterval: TimeInterval = {
-          startTime: startTime,
-          endTime: currTime,
-        };
-        addStudyTime(newStudyInterval);
-
         break;
 
       case "SHORT_BREAK":
@@ -105,11 +105,46 @@ function App() {
     setStudyState(newState);
   };
 
+  const changeToNextState = () => {
+    switch (studyState) {
+      case "STUDY":
+        if (numOfLab % numOfLabBeforeLongBreak === 0) {
+          changeStudyState("LONG_BREAK");
+        } else {
+          changeStudyState("SHORT_BREAK");
+        }
+        break;
+      case "SHORT_BREAK":
+        changeStudyState("STUDY");
+        nextLab();
+        break;
+      case "LONG_BREAK":
+        changeStudyState("STUDY");
+        nextLab();
+        break;
+      default:
+        break;
+    }
+  };
+
   const handleCurrTimer: React.MouseEventHandler<HTMLButtonElement> = (e) => {
     setIsRunning((currState) => !currState);
   };
 
+  const nextLab = () => {
+    setNumOfLab((curr) => curr + 1);
+  };
+
   const addStudyTime = (newInterval: TimeInterval) => {
+    const currTime = new Date();
+    const startTime = new Date(currTime.getTime() - currLabPassingTime);
+
+    const newStudyInterval: TimeInterval = {
+      name: studyState,
+      startTime: startTime,
+      endTime: currTime,
+    };
+
     setStudyTimes((curr) => [newInterval, ...curr]);
   };
 
@@ -158,13 +193,12 @@ function App() {
         <p className="text-3xl font-bold text-blue-600">
           {min} : {sec}
         </p>
-
         <p className="text-3xl font-bold text-blue-600">
           {remMin} : {remSec}
         </p>
 
-        <p>{isTimeToBreak ? "time to take break" : "time to focus"}</p>
         <p>{numOfLab}</p>
+
         {/* buttons */}
         <button
           className="px-4 py-1 text-sm  font-semibold rounded-full border  hover:bg-purple-600"
@@ -173,12 +207,21 @@ function App() {
           {isRunning ? "STOP" : "START"}
         </button>
 
+        <button
+          className="px-4 py-1 text-sm  font-semibold rounded-full border  hover:bg-purple-600"
+          onClick={changeToNextState}
+        >
+          {"next"}
+        </button>
+
+        <h2>{milSecondsToMinAndSeconds(studyingTime)}</h2>
+
         <div>
           {studyTimes.map((timeInterval) => {
             return (
               <div>
                 {timeInterval.startTime.toLocaleTimeString()} -{" "}
-                {timeInterval.endTime.toLocaleTimeString()}
+                {timeInterval.endTime?.toLocaleTimeString()}
               </div>
             );
           })}
