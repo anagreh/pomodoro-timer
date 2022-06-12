@@ -20,6 +20,9 @@ function App() {
   const [expectedToChangeState, setExpectedToChangeState] = useState(false);
   const [studyingTime, setStudyingTime] = useState(0);
 
+  // audio
+  const [audioStudy, toggleAudioStudy] = useAudio("./sound-1.wav");
+
   // start timer
   useEffect(() => {
     if (isRunning) {
@@ -41,6 +44,13 @@ function App() {
       setExpectedToChangeState(false);
     }
   }, [currLabPassingTime]);
+
+  // PLAY AUDIO
+  useEffect(() => {
+    if (expectedToChangeState) {
+      toggleAudioStudy();
+    }
+  }, [expectedToChangeState]);
 
   // set the curr interval time
   useEffect(() => {
@@ -174,5 +184,25 @@ function minToMilliseconds(min: number) {
 function milSecondsToMin(milSeconds: number) {
   return milSeconds / 1000 / 60;
 }
+
+const useAudio = (url: string): [boolean, () => void] => {
+  const [audio] = useState(new Audio(url));
+  const [playing, setPlaying] = useState(false);
+
+  const toggle = () => setPlaying(!playing);
+
+  useEffect(() => {
+    playing ? audio.play() : audio.pause();
+  }, [playing]);
+
+  useEffect(() => {
+    audio.addEventListener("ended", () => setPlaying(false));
+    return () => {
+      audio.removeEventListener("ended", () => setPlaying(false));
+    };
+  }, []);
+
+  return [playing, toggle];
+};
 
 export default App;
