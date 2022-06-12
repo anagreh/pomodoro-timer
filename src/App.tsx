@@ -15,12 +15,8 @@ function App() {
   const [longBreakInterval, setLongBreakInterval] = useState(minToMilliseconds(0.02));
   const [numOfLabBeforeLongBreak, setNumOfLabBeforeLongBreak] = useState(4);
   const [isChangeStateAuto, setIsChangeStateAuto] = useState(true);
-  const [isStopTimeAfterEnd, setIsStopTimeAfterEnd] = useState(false);
 
   const [studyState, setStudyState] = useState<StudyState>("STUDY");
-  const [currInterval, setCurrInterval] = useState<TimeInterval>();
-  const [studyTimes, setStudyTimes] = useState<TimeInterval[]>([]);
-  const [breakTimes, setBreakTimes] = useState<TimeInterval[]>([]);
 
   const [currLabPassingTime, setCurrLabPassingTime] = useState(0);
   const [currIntervalTime, setCurrIntervalTime] = useState(studyInterval);
@@ -87,10 +83,6 @@ function App() {
     }
   };
 
-  const forceStudyStateChange = (newState: StudyState) => {
-    changeStudyState(newState);
-  };
-
   const changeStudyState = (newState: StudyState) => {
     switch (studyState) {
       case "STUDY":
@@ -135,19 +127,6 @@ function App() {
     setNumOfLab((curr) => curr + 1);
   };
 
-  const addStudyTime = (newInterval: TimeInterval) => {
-    const currTime = new Date();
-    const startTime = new Date(currTime.getTime() - currLabPassingTime);
-
-    const newStudyInterval: TimeInterval = {
-      name: studyState,
-      startTime: startTime,
-      endTime: currTime,
-    };
-
-    setStudyTimes((curr) => [newInterval, ...curr]);
-  };
-
   const [min, sec] = milSecondsToMinAndSeconds(currLabPassingTime);
   const [remMin, remSec] = milSecondsToMinAndSeconds(currIntervalTime - currLabPassingTime);
 
@@ -163,7 +142,6 @@ function App() {
               onClick={handleStudyStateChange}
             >
               STUDY
-              {milSecondsToMin(studyInterval)}
             </button>
           </li>
           <li>
@@ -173,7 +151,6 @@ function App() {
               onClick={handleStudyStateChange}
             >
               SHORT BREAK
-              {milSecondsToMin(shortBreakInterval)}
             </button>
           </li>
           <li>
@@ -183,7 +160,6 @@ function App() {
               onClick={handleStudyStateChange}
             >
               LONG BREAK
-              {milSecondsToMin(longBreakInterval)}
             </button>
           </li>
         </ul>
@@ -215,17 +191,6 @@ function App() {
         </button>
 
         <h2>{milSecondsToMinAndSeconds(studyingTime)}</h2>
-
-        <div>
-          {studyTimes.map((timeInterval) => {
-            return (
-              <div>
-                {timeInterval.startTime.toLocaleTimeString()} -{" "}
-                {timeInterval.endTime?.toLocaleTimeString()}
-              </div>
-            );
-          })}
-        </div>
       </div>
     </div>
   );
