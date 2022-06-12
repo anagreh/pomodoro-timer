@@ -2,11 +2,6 @@ import { useEffect, useState } from "react";
 import "./App.css";
 
 type StudyState = "STUDY" | "SHORT_BREAK" | "LONG_BREAK";
-interface TimeInterval {
-  name: StudyState;
-  startTime: Date;
-  endTime: Date | undefined;
-}
 
 function App() {
   // config
@@ -14,7 +9,7 @@ function App() {
   const [shortBreakInterval, setShortBreakInterval] = useState(minToMilliseconds(0.01));
   const [longBreakInterval, setLongBreakInterval] = useState(minToMilliseconds(0.02));
   const [numOfLabBeforeLongBreak, setNumOfLabBeforeLongBreak] = useState(4);
-  const [isChangeStateAuto, setIsChangeStateAuto] = useState(true);
+  const [isChangeStateAuto, setIsChangeStateAuto] = useState(false);
 
   const [studyState, setStudyState] = useState<StudyState>("STUDY");
 
@@ -75,14 +70,6 @@ function App() {
     }
   }, [expectedToChangeState]);
 
-  const handleStudyStateChange: React.MouseEventHandler<HTMLButtonElement> = (e) => {
-    const newState = e.currentTarget.value as StudyState;
-
-    if (isRunning === false && expectedToChangeState == true) {
-      changeStudyState(newState);
-    }
-  };
-
   const changeStudyState = (newState: StudyState) => {
     switch (studyState) {
       case "STUDY":
@@ -95,6 +82,13 @@ function App() {
         break;
     }
     setStudyState(newState);
+  };
+
+  const handleChangeToNextState = () => {
+    if (expectedToChangeState) return changeToNextState();
+
+    const confirmation = confirm("Are you sure you want to change to the next state?");
+    if (confirmation) changeToNextState();
   };
 
   const changeToNextState = () => {
@@ -133,36 +127,6 @@ function App() {
   return (
     <div className="container bg-slate-500 mx-auto min-h-screen flex justify-center items-center">
       <div className="flex flex-col items-center">
-        {/* Nav */}
-        <ul className="flex gap-2 flex-col md:flex-row">
-          <li>
-            <button
-              className="px-2 py-1 bg-blue-600"
-              value="STUDY"
-              onClick={handleStudyStateChange}
-            >
-              STUDY
-            </button>
-          </li>
-          <li>
-            <button
-              className="px-2 py-1 bg-blue-600"
-              value="SHORT_BREAK"
-              onClick={handleStudyStateChange}
-            >
-              SHORT BREAK
-            </button>
-          </li>
-          <li>
-            <button
-              className="px-2 py-1 bg-blue-600"
-              value="LONG_BREAK"
-              onClick={handleStudyStateChange}
-            >
-              LONG BREAK
-            </button>
-          </li>
-        </ul>
         <h2 className="text-6xl my-4">{studyState}</h2>
 
         {/* timer */}
@@ -185,7 +149,7 @@ function App() {
 
         <button
           className="px-4 py-1 text-sm  font-semibold rounded-full border  hover:bg-purple-600"
-          onClick={changeToNextState}
+          onClick={handleChangeToNextState}
         >
           {"next"}
         </button>
