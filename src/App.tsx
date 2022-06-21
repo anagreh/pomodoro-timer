@@ -158,7 +158,7 @@ function App() {
         </div>
 
         {/* main */}
-        <div className="md:col-span-3 flex flex-col items-center p-6 col-span-5">
+        <div className="md:col-span-3 flex flex-col items-center p-1 md:p-6 col-span-5">
           <h2 className="text-6xl mb-4">{studyState}</h2>
           {/* timer */}
           <div className="grid gap-16 grid-cols-2 mb-4">
@@ -177,7 +177,7 @@ function App() {
           </div>
 
           {/* buttons */}
-          <div className="grid grid-cols-3 items-center mb-4">
+          <div className="grid grid-cols-3 items-center mb-4 ">
             <div className="flex gap-1 items-center">
               <Button onClick={handleCurrTimer}>{isRunning ? "STOP" : "START"}</Button>
               {currLabPassingTime > 0 && (
@@ -199,12 +199,14 @@ function App() {
               )}
             </div>
 
-            <div>
+            <div className="col-start-2 row-start-2 md:row-start-auto">
               <p className="text-sm text-center">lab</p>
               <p className="text-center">{numOfLab}</p>
             </div>
 
-            <Button onClick={onClickNextBtn}>NEXT</Button>
+            <Button className="col-start-3 row-start-1" onClick={onClickNextBtn}>
+              NEXT
+            </Button>
           </div>
 
           {/* study time */}
@@ -244,12 +246,13 @@ function App() {
 
 type BtnProps = {
   children: React.ReactNode;
+  className?: string;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 };
 export const Button = (props: BtnProps) => {
   return (
     <button
-      className="flex rounded-md bg-white overflow-clip w-28 text-secondary"
+      className={"flex rounded-md bg-white overflow-clip w-28 text-secondary " + props.className}
       onClick={props.onClick}
     >
       <div className="bg-secondary py-2 px-2">
