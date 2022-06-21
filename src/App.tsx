@@ -145,7 +145,7 @@ function App() {
     <main className="container max-w-4xl h-96 mx-auto min-h-screen flex justify-center items-center">
       <div className="bg-primary grid grid-cols-5 text-secondary">
         {/* config */}
-        <div className="bg-secondary col-span-1 p-4 text-primary flex flex-col gap-2 ">
+        <div className="bg-secondary md:col-span-1 p-4 text-primary flex flex-col gap-2 col-span-5 ">
           <h2 className="text-center py-1">Config</h2>
           <SwitchConfig setConfig={setIsChangeStateAuto}>auto change state</SwitchConfig>
           <NumConfig
@@ -158,7 +158,7 @@ function App() {
         </div>
 
         {/* main */}
-        <div className="col-span-3 flex flex-col items-center p-6">
+        <div className="md:col-span-3 flex flex-col items-center p-6 col-span-5">
           <h2 className="text-6xl mb-4">{studyState}</h2>
           {/* timer */}
           <div className="grid gap-16 grid-cols-2 mb-4">
@@ -215,7 +215,7 @@ function App() {
         </div>
 
         {/*  time sitting */}
-        <div className="bg-secondary col-span-1 p-4 text-primary">
+        <div className="bg-secondary md:col-span-1 p-4 text-primary col-span-5">
           <h2 className="mb-1 text-center">Time Sitting</h2>
           <TimeInput name="study-time" value={studyInterval} setValue={setStudyInterval}>
             Study Time
